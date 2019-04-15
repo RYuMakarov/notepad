@@ -1,3 +1,15 @@
+# encoding: utf-8
+# XXX/ Этот код необходим только при использовании русских букв на Windows
+if (Gem.win_platform?)
+  Encoding.default_external = Encoding.find(Encoding.locale_charmap)
+  Encoding.default_internal = __ENCODING__
+
+  [STDIN, STDOUT].each do |io|
+    io.set_encoding(Encoding.default_external, Encoding.default_internal)
+  end
+end
+
+#/XXX
 require 'date'
 
 class Task < Post
@@ -24,4 +36,19 @@ class Task < Post
 
     return [deadline, @text, time_string]
   end
+
+  def to_db_hash
+    return super.merge(
+                    {
+                        'text' => @text,
+                        'due_date' => @due_date.to_s
+                    }
+    )
+  end
+
+  def load_data(data_hash)
+    super(data_hash)
+    @due_date = Date.parse(data_hash['due_date'])
+  end
+
 end
